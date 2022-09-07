@@ -93,3 +93,49 @@ ALTER TABLE journeys ADD CONSTRAINT valid_amount CHECK (members_count >= 10 AND 
 BEGIN;
 ALTER TABLE cities ADD COLUMN population integer;
 ROLLBACK;
+
+-- ЛР 3
+
+CREATE TABLE contacts (
+id serial PRIMARY KEY,
+phones text[],
+schedule text[][]);
+
+INSERT INTO contacts VALUES (default, '{"(383)-123-45-67", "(383)-890-12-34", "(383)-567-89-01"}', '{{"09:00", "18:00"}, {"09:00", "18:00"}, {"09:00", "18:00"}, {"10:00", "18:00"}, {"10:00", "18:00"}}');
+
+SELECT phones[1] FROM contacts;
+
+SELECT schedule[2:4][1:1] FROM contacts WHERE id = 1;
+
+SELECT array_dims(phones), array_dims(schedule) FROM contacts;
+
+UPDATE contacts SET schedule[4:5][1:1] = '{{"12:00", "12:00"}}';
+
+UPDATE contacts SET phones[2] = '+7-913-546-89-23' WHERE id = 5;
+
+SELECT (id, type, price) FROM tours t
+WHERE t.price =
+(SELECT MIN(price) FROM tours t
+WHERE t.type = 'авиа');
+
+SELECT (id, type, price) FROM tours t
+WHERE t.price =
+(SELECT MAX(price) FROM tours t
+WHERE t.type = 'железнодорожный');
+
+SELECT COUNT(*) FROM tours t
+WHERE t.type = 'автобусный';
+
+SELECT AVG(price)
+FROM tours t
+JOIN cities c ON t.id_city = c.id
+WHERE c.name = 'Москва';
+
+ALTER TABLE guides ADD COLUMN work_experience integer;
+UPDATE guides SET work_experience = 2002 - EXTRACT(year FROM date_of_birth);
+
+SELECT SUM(t.price)
+FROM tours t
+JOIN journeys j ON j.tour_id = t.id
+JOIN guides g ON j.tour_id = g.id
+WHERE g.work_experience > 10;
