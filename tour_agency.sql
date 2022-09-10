@@ -139,3 +139,49 @@ FROM tours t
 JOIN journeys j ON j.tour_id = t.id
 JOIN guides g ON j.tour_id = g.id
 WHERE g.work_experience > 10;
+
+-- ЛР 4
+
+-- Найти всех руководителей туров, которые обслуживают 
+-- только  автобусные  туры  и  выполнившие  заказы  на  туры  со  стоимостью 
+-- больше,  чем  средняя  стоимость  заказов на  все  туры, выполненные за 
+-- последние три месяца
+SELECT g.surname
+FROM guides g
+JOIN journeys j ON j.guide_id = g.id
+JOIN tours t ON j.tour_id = t.id
+WHERE t.type = 'автобусный' AND t.type <> 'авиа'AND t.type <> 'железнодорожный' AND
+t.price > (
+SELECT AVG(price) FROM tours
+WHERE (age('today', start_date) <= '3 months')
+);
+
+-- Найти все туры, выполненные за последний месяц, и 
+-- со  стоимостью  больше,  чем  средняя  стоимость  железнодорожных  туров, 
+-- выполненных за последние две недели
+SELECT * FROM tours  
+WHERE (age('today', start_date) <= interval '1 month') AND
+price > (
+SELECT AVG(price)
+FROM tours 
+WHERE type = 'железнодорожный' AND
+(age('today', start_date) <= '2 weeks')
+);
+
+-- Нацелен на
+ALTER TABLE tours ADD COLUMN objective text;
+
+UPDATE TABLE tours SET objective = '' WHERE id = 1;
+
+-- Найти все авиатуры в страны Турция 
+-- и Египет,  предлагаемые для семейного отдыха и чья стоимость  больше, чем 
+-- средняя стоимость туров, позиционируемых как туры-шопинги
+SELECT t.type, t.price, t.objective, c.name
+FROM tours t
+JOIN cities c ON t.id_city = c.id
+WHERE t.type = 'авиа' AND
+t.objective = 'семейный отдых' AND
+t.price > (
+SELECT AVG(price) FROM tours
+WHERE objective = 'шоппинг') AND
+(c.name = 'Турция' OR c.name = 'Египет');
