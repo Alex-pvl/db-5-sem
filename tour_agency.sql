@@ -185,3 +185,74 @@ t.price > (
 SELECT AVG(price) FROM tours
 WHERE objective = 'шоппинг') AND
 (c.name = 'Турция' OR c.name = 'Египет');
+
+-- ЛР 5
+
+CREATE TABLE tours2 (
+id integer,
+type varchar,
+price numeric,
+duration_days integer,
+id_city integer,
+PRIMARY KEY(id),
+FOREIGN KEY(id_city) REFERENCES cities(id)
+);
+
+create function add_n(int) returns char 
+as 'declare t int; begin
+select max(id) into t from tours2;
+for k in (t+1)..($1+t+1) loop
+insert into tours2 values 
+(k, ''авиа''||round(random()*1000), 
+round(10000+random()*100000),
+round(3+random()*18),
+round(1+random()*13));
+end loop; return''Done!'';
+end;'
+language 'plpgsql';
+
+-- вставить значение перед вызовом функции add_n(int)
+
+EXPLAIN ANALYZE select * from tours2 where price = 50000;
+CREATE INDEX price_index ON tours2 USING BTREE(price);
+CREATE INDEX price_index ON tours2 USING HASH(price);
+
+EXPLAIN ANALYZE select * from tours2 where upper(type) = 'авиа500';
+CREATE INDEX type_index ON tours2 (upper(type));
+
+-- 1
+SELECT g.id, g.surname, g.date_of_birth, g.work_experience
+FROM guides g
+JOIN journeys j ON j.guide_id = g.id
+JOIN tours t ON j.tour_id = t.id
+JOIN cities c ON t.id_city = c.id
+WHERE t.type = 'авиа' AND
+c.name = 'Москва';
+
+-- 2
+tour_agency=# SELECT * FROM tours t
+tour_agency-# WHERE (t.duration BETWEEN 5 AND 15) AND
+tour_agency-# (t.price BETWEEN 5000 AND 25000);
+
+-- 3
+SELECT * FROM tours
+WHERE type = 'автобусный' AND
+age('today', start_date) >= interval '-1 month' AND
+age('today', start_date) <= interval '0 days';
+
+-- 4
+SELECT t.type, g.surname, g.work_experience
+FROM tours t
+JOIN journeys j ON j.tour_id = t.id
+JOIN guides g ON j.guide_id = g.id
+WHERE t.type = 'железнодорожный' AND
+g.work_experience BETWEEN 5 AND 10;
+
+-- 5
+SELECT t.type, j.members_count, c.name
+FROM tours t
+JOIN journeys j ON j.tour_id = t.id
+JOIN cities c ON t.id_city = c.id
+WHERE (t.type = 'автобусный' OR t.type = 'авиа') AND
+(c.name = 'Польша' OR c.name = 'Германия') AND
+j.members_count > 20;
