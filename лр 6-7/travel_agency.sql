@@ -271,8 +271,43 @@ delete from guides where id=_id;
 return ''Гид успешно удален!'';
 end;' language 'plpgsql';
 -- добавить тур
+create or replace function add_tour(
+    _id integer,
+    _tt_id integer,
+    _price integer,
+    _departure date,
+    _city_id integer,
+    _members_count integer,
+    _duration integer
+  ) returns char(50) as 'begin
+if (select count(id) from tours where id=_id)<>0 then
+return ''Ошибка: Тур с таким id уже существует!'';
+end if;
+if (select count(id) from tour_types where id=_tt_id)=0 then
+return ''Ошибка: Некорректный тип тура!'';
+end if;
+if _price<0 then
+return ''Ошибка: Цена должна быть положительной!'';
+end if;
+if age(''today'', _departure) >= interval ''1 day'' then
+return ''Ошибка: Проверьте дату отправления!'';
+end if;
+if (select count(id) from cities where id=_city_id)=0 then
+return ''Ошибка: Некорректный id города!'';
+end if;
+if (select count(*) from tour_types where id=_tt_id)=0 then
+return ''Ошибка: Некорректный тип тура!'';
+end if;
+if (_members_count < 10 or _members_count > 45) then
+return ''Ошибка: Проверьте количество участников тура!'';
+end if;
+if _duration<=0 then
+return ''Ошибка: Проверьте продолжительность тура!'';
+end if;
+insert into tours values (_id, _tt_id, _price, _departure, _city_id, _members_count, _duration);
+return ''Успешно: Тур создан!'';
+end;' language 'plpgsql';
 -- удалить тур
-TODO: скрин тестов
 create or replace function delete_tour(_id integer) returns char(50) as 'begin
 if (select count(id) from tours where id=_id)=0 then
 return ''Ошибка: Такого тура не существует!'';
@@ -281,8 +316,32 @@ delete from tours where id=_id;
 return ''Тур успешно удален!'';
 end;' language 'plpgsql';
 -- добавить заказ
+create or replace function add_booking(
+    _id integer,
+    _sale_date date,
+    _c_id integer,
+    _g_id integer,
+    _t_id integer
+  ) returns char(50) as 'begin
+if (select count(id) from bookings where id=_id)<>0 then
+return ''Ошибка: Заказ с таким id уже существует!'';
+end if;
+if age(''today'', _sale_date) >= interval ''1 day'' then
+return ''Ошибка: Проверьте дату заказа!'';
+end if;
+if (select count(id) from cities where id=_c_id)=0 then
+return ''Ошибка: Проверьте id города!'';
+end if;
+if (select count(id) from guides where id=_g_id)=0 then
+return ''Ошибка: Проверьте id гида!'';
+end if;
+if (select count(id) from tours where id=_t_id)=0 then
+return ''Ошибка: Проверьте id тура!'';
+end if;
+insert into bookings values (_id, _sale_date, _c_id, _g_id, _t_id);
+return ''Успешно: Заказ добавлен!'';
+end;' language 'plpgsql';
 -- удалить заказ
-TODO: скрин тестов
 create or replace function delete_booking(_id integer) returns char(50) as 'begin
 if (select count(id) from bookings where id=_id)=0 then
 return ''Ошибка: Такого заказа не существует!'';
