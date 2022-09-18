@@ -206,7 +206,7 @@ VALUES(
         16
     );
 -- Общий функционал для работы с бд
--- добавить клиента
+-- добавить клиента OK
 create or replace function add_client(
         _fullname varchar(255),
         _passport numeric,
@@ -225,7 +225,7 @@ end if;
 insert into clients values (default, _fullname, _passport, _gender, _age);
 return ''Клиент успешно добавлен!'';
 end;' language 'plpgsql';
--- удалить клиента
+-- удалить клиента OK
 create or replace function delete_client(_id integer) returns char(50) as 'begin
 if (select count(id) from clients where id=_id)=0 then
 return ''Ошибка: Такого клиента не существует!'';
@@ -234,7 +234,7 @@ delete from clients where id=_id;
 delete from bookings where client_id=_id;
 return ''Клиент успешно удален!'';
 end;' language 'plpgsql';
--- нанять гида
+-- нанять гида ОК
 create or replace function add_guide(
         _id integer,
         _fullname varchar(255),
@@ -264,7 +264,7 @@ insert into guides values (_id, _fullname, _date_of_birth, _phone, _work_experie
 end if;
 return ''Успешно!'';
 end;' language 'plpgsql';
--- уволить гида
+-- уволить гида ОК
 create or replace function delete_guide(_id integer) returns char(50) as 'begin
 if (select count(id) from guides where id=_id)=0 then
 return ''Ошибка: Такого гида не существует!'';
@@ -273,7 +273,7 @@ delete from guides where id=_id;
 delete from bookings where guide_id=_id;
 return ''Гид успешно удален!'';
 end;' language 'plpgsql';
--- добавить тур
+-- добавить тур ОК
 create or replace function add_tour(
         _id integer,
         _tt_id integer,
@@ -310,7 +310,7 @@ end if;
 insert into tours values (_id, _tt_id, _price, _departure, _city_id, _members_count, _duration);
 return ''Успешно: Тур создан!'';
 end;' language 'plpgsql';
--- удалить тур
+-- удалить тур ОК
 create or replace function delete_tour(_id integer) returns char(50) as 'begin
 if (select count(id) from tours where id=_id)=0 then
 return ''Ошибка: Такого тура не существует!'';
@@ -319,7 +319,7 @@ delete from tours where id=_id;
 delete from bookings where tour_id=_id;
 return ''Тур успешно удален!'';
 end;' language 'plpgsql';
--- добавить заказ
+-- добавить заказ ОК
 create or replace function add_booking(
         _id integer,
         _sale_date date,
@@ -345,7 +345,7 @@ end if;
 insert into bookings values (_id, _sale_date, _c_id, _g_id, _t_id);
 return ''Успешно: Заказ добавлен!'';
 end;' language 'plpgsql';
--- удалить заказ
+-- удалить заказ ОК
 create or replace function delete_booking(_id integer) returns char(50) as 'begin
 if (select count(id) from bookings where id=_id)=0 then
 return ''Ошибка: Такого заказа не существует!'';
@@ -356,7 +356,7 @@ end;' language 'plpgsql';
 -- выдать  рекомендации  для  клиента  с  учетом  его 
 -- пола,  возраста  и  выполненных  туров  на  основании  общей  статистики
 --
---          идея: выдавать для М(Ж) только туры из заказов, у которых клиет М(Ж) и возраст +-8 лет.
+--          идея: выдавать для М(Ж) только туры из заказов, у которых клиет М(Ж) и возраст +-8 лет. ОК
 create or replace function get_recomend_tours(_client_id integer) returns table (_tour_id integer) as '
 declare _gender varchar(1);
 declare _age integer;
