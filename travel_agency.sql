@@ -511,3 +511,51 @@ GRANT EXECUTE ON FUNCTION get_tour_city_demands,
     get_recomend_tours TO analyst;
 -- админ
 CREATE ROLE admin SUPERUSER CREATEROLE CREATEDB;
+-- 8
+-- функция для удаления тура из таблицы заказов
+create function delete_tour_trigger() returns trigger as '
+begin
+if (select count(*) from bookings b where b.tour_id=OLD.id)<>0 
+then delete from bookings b where b.tour_id=OLD.id;
+end if;
+return OLD;
+end;' language 'plpgsql';
+-- триггер
+create trigger tour_trigger before delete on tours for each row execute procedure delete_tour_trigger();
+-- создание последовательности
+create sequence seq1 increment by 1 start with 25;
+-- alter
+alter table tours
+add column name text;
+-- перегрузки
+-- нет имени тура - Tur + seq1
+create function f(text, text) returns text as '
+begin 
+if $1 is null then return $2;
+else return $1;
+end if;
+end;' language 'plpgsql';
+-- нет города - Калининград
+create function f(integer, integer) returns integer as '
+begin 
+if $1 is null then return $2;
+else return $1;
+end if;
+end;' language 'plpgsql';
+-- длительность тура - нет/<=7 -> 7 для Калининграда, 0 - ост
+-- создание функции перед добавлением тура
+create function insert_tour_trigger() returns trigger as '
+begin
+NEW.name=f(NEW.name, ''Tur''||trim(to_char(nextval(''seq1''),''99999'')));
+NEW.city_id=f(NEW.city_id, 17);
+if (f(NEW.duration,7)<=7) then
+if NEW.city_id=17 then NEW.duration=7;
+else NEW.duration=0;
+end if;
+end if;
+return NEW;
+end;' language 'plpgsql';
+-- триггер 2
+create trigger tour_trigger2 before
+insert on tours for each row 
+execute procedure insert_tour_trigger();
