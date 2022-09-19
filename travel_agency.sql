@@ -521,7 +521,9 @@ end if;
 return OLD;
 end;' language 'plpgsql';
 -- триггер
-create trigger tour_trigger before delete on tours for each row execute procedure delete_tour_trigger();
+create trigger tour_trigger 
+before delete on tours for each row 
+execute procedure delete_tour_trigger();
 -- создание последовательности
 create sequence seq1 increment by 1 start with 25;
 -- alter
